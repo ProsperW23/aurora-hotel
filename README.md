@@ -15,15 +15,6 @@ Clean, responsive, and user-friendly interface
 
 Dashboard for quick insights into hotel operations
 
-Technologies Used
-
-HTML
-
-CSS
-
-JavaScript
-
-Node.js (for backend)
 
 Screenshots
 <img width="1365" height="646" alt="Screenshot 2025-09-16 000736" src="https://github.com/user-attachments/assets/3425c314-d082-42ac-9b1e-649f542155bb" />
@@ -33,16 +24,28 @@ Screenshots
 
 
 
+Files included:
+- app.py
+- init_db.sql
+- requirements.txt
+- templates/ (your original HTML files preserved and wired)
+- static/ (your CSS/JS/images preserved)
+- README.txt
 
+Default admin credentials (seeded in init_db.sql):
+  username: admin
+  password: adminpass
 
+Important notes:
+- rooms.html remains static (served at /rooms-static).
+- Booking form (bookings.html) loads rooms from DB for dropdown and posts to /booking.
+- Login uses your login.html and posts to /login.
+- Admin page (admin.html) is protected and lists bookings from DB; confirm via button.
+- Update FLASK_SECRET and DB env vars for production use.
 
-Run
-cd backend
-npm install
-npm start
-
-
-Open http://localhost:3000
-
-Login: admin@aurorahotel.com
- / admin123
+How to run:
+1. Import DB: mysql -u root -p < init_db.sql
+2. Install deps: pip install -r requirements.txt
+3. Set environment vars if needed: DB_HOST, DB_USER, DB_PASS, DB_NAME, FLASK_SECRET
+4. Run: python app.py
+5. Visit: http://127.0.0.1:5000/ (homepage) and http://127.0.0.1:5000/rooms-static (static rooms page)
