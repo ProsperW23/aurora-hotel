@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bookings · Aurora Hotel</title>
+<link rel="icon" href="{{ url_for('static', filename='assets/favicon.svg') }}" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/style.css') }}">
+<script src="{{ url_for('static', filename='assets/app.js') }}"></script>
+<style>
+/* Flash message styling */
+.flash {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
+}
+.flash.success { background: #e6f9ed; color: #256029; border: 1px solid #a6d8b6; }
+.flash.error { background: #fbeaea; color: #8b1a1a; border: 1px solid #e0a4a4; }
+.flash.info { background: #eaf4fb; color: #1a4b8b; border: 1px solid #a4c6e0; }
+</style>
+</head>
+
+<body data-page="bookings">
+
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="{{ url_for('index') }}"><span class="logo">Aurora</span><small>Hotel</small></a>
+    <nav>
+      <ul class="nav-list" data-nav>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('rooms') }}">Rooms</a></li>
+        <li><a href="{{ url_for('booking') }}">Bookings</a></li>
+        <!-- <li><a href="{{ url_for('admin') }}">Admin</a></li> -->
+        <li><a href="{{ url_for('login') }}" class="login-link">Login</a></li>
+        <li><a href="{{ url_for('logout') }}"><button class="logout-btn">Logout</button></a></li>
+      </ul>
+      <button class="hamburger" data-menu aria-label="Menu"><span></span><span></span><span></span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="container pad">
+  <header class="page-header">
+    <h1>Book a Room</h1>
+    <p class="muted">Fill the form below — booking doesn't require login.</p>
+  </header>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <section class="card form-card">
+    <!-- Booking form -->
+    <form method="post" action="{{ url_for('booking') }}" class="grid">
+      <label>Full name<input name="guest_name" required></label>
+      <label>Email<input name="email" type="email" required></label>
+      <label>Phone<input name="phone" type="tel" required></label>
+
+      <label>Room:
+        <select name="room_id" id="roomSelect" required>
+          {% for r in rooms %}
+            <option value="{{ r.id }}" data-price="{{ r.price }}">{{ r.room_type }} - ₦{{ r.price }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Guests<input name="guests" id="guestsInput" type="number" min="1" value="1" required></label>
+      <label>Check-in<input name="checkin" id="checkIn" type="date" required></label>
+      <label>Check-out<input name="checkout" id="checkOut" type="date" required></label>
+
+      <div class="booking-actions">
+        <p id="pricePreview">Total: —</p>
+        <button class="btn btn-primary" type="submit">Confirm Booking</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="confirm" class="card hidden">
+    <h3>Confirmed</h3><p id="confirmMsg"></p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="brand-block">
+      <h3>Aurora Hotel</h3>
+      <p class="muted">A curated stay with refined comforts and human warmth.</p>
+      <small class="muted">© 2025 Aurora Hotel</small>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p class="muted">123 Ocean Drive, Lagos<br>+234 800 000 0000<br>hello@aurorahotel.example</p>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <ul class="plain">
+        <li><a href="{{ url_for('rooms') }}">Rooms</a></li>
+        <li><a href="{{ url_for('booking') }}">Book</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Newsletter</h4>
+      <form id="newsletter" class="newsletter">
+        <input placeholder="Email address" type="email">
+        <button class="btn small">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</footer>
+
+<!-- Price preview + flash fadeout script -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const roomSelect = document.getElementById('roomSelect');
+  const guestsInput = document.getElementById('guestsInput');
+  const checkInInput = document.getElementById('checkIn');
+  const checkOutInput = document.getElementById('checkOut');
+  const pricePreview = document.getElementById('pricePreview');
+
+  function calcNights() {
+    const inDate = new Date(checkInInput.value);
+    const outDate = new Date(checkOutInput.value);
+    if (!isNaN(inDate) && !isNaN(outDate) && outDate > inDate) {
+      return Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+    }
+    return 1;
+  }
+
+  function updatePrice() {
+    const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+    const roomPrice = parseFloat(selectedOption.dataset.price || 0);
+    const guests = parseInt(guestsInput.value) || 1;
+    const nights = calcNights();
+    const total = roomPrice * guests * nights;
+    pricePreview.textContent = `Total: ₦${total.toLocaleString()} (${nights} night${nights>1?'s':''})`;
+  }
+
+  roomSelect.addEventListener('change', updatePrice);
+  guestsInput.addEventListener('input', updatePrice);
+  checkInInput.addEventListener('change', updatePrice);
+  checkOutInput.addEventListener('change', updatePrice);
+
+  updatePrice();
+
+  // Fade out flash messages after 4 seconds
+  const flashMessages = document.querySelectorAll('.flash');
+  flashMessages.forEach(flash => {
+    setTimeout(() => {
+      flash.style.opacity = '0';
+      setTimeout(() => flash.remove(), 600);
+    }, 4000);
+  });
+});
+</script>
+
+</body>
+</html>

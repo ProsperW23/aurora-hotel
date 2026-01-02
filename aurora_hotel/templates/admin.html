@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin · Aurora Hotel</title>
+<link rel="icon" href="{{ url_for('static', filename='assets/favicon.svg') }}" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/style.css') }}">
+<script src="{{ url_for('static', filename='assets/app.js') }}"></script>
+</head>
+
+<body data-page="admin">
+
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="{{ url_for('index') }}"><span class="logo">Aurora</span><small>Hotel</small></a>
+    <nav>
+      <ul class="nav-list" data-nav>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('rooms') }}">Rooms</a></li>
+        <li><a href="{{ url_for('booking') }}">Book</a></li>
+        {% if session.get('user') %}
+        <li><a href="{{ url_for('admin') }}">Admin</a></li>
+        <li><a href="{{ url_for('logout') }}"><button class="logout-btn">Logout</button></a></li>
+        {% else %}
+        <li><a href="{{ url_for('login') }}" class="login-link">Login</a></li>
+        {% endif %}
+      </ul>
+      <button class="hamburger" data-menu aria-label="Menu"><span></span><span></span><span></span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="container pad">
+  <header class="page-header">
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Manage bookings</p>
+  </header>
+
+  <section class="card">
+    <div class="kpis">
+      <div>
+        <h3 id="kpiBookings">{{ bookings|length }}</h3>
+        <p class="muted">Bookings</p>
+      </div>
+      <div>
+        <h3 id="kpiRevenue">₦{{ bookings | sum(attribute='total_price') }}</h3>
+        <p class="muted">Revenue</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bookings Table -->
+  <section class="card admin-bookings">
+    <h2>Bookings</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Guest</th>
+          <th>Room</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td>{{ b.id }}</td>
+          <td>{{ b.name }} ({{ b.email }})</td>
+          <td>{{ b.room_type or 'N/A' }}</td>
+          <td>{{ b.check_in }}</td>
+          <td>{{ b.check_out }}</td>
+          <td>{{ b.status }}</td>
+          <td>
+            {% if b.status != 'confirmed' %}
+            <form method="post" action="{{ url_for('confirm_booking', booking_id=b.id) }}">
+              <button type="submit" class="btn small">Confirm</button>
+            </form>
+            {% else %}
+            <span class="muted">Confirmed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="muted">No bookings found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="brand-block">
+      <h3>Aurora Hotel</h3>
+      <p class="muted">A curated stay with refined comforts and human warmth.</p>
+      <small class="muted">© 2025 Aurora Hotel</small>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p class="muted">123 Ocean Drive, Lagos<br>+234 800 000 0000<br>hello@aurorahotel.example</p>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <ul class="plain">
+        <li><a href="{{ url_for('booking') }}">Book</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Newsletter</h4>
+      <form id="newsletter" class="newsletter">
+        <input placeholder="Email address" type="email">
+        <button class="btn small">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
